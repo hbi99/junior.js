@@ -1,0 +1,28 @@
+{
+  "name": "junior",
+  "version": "0.1.0",
+  "description": "Simple jQuery like traversers and useful functions",
+  "author": {
+    "name": "Hakan Bilgin",
+    "email": "hbi@longscript.com",
+    "url": "https://github.com/hbi99"
+  },
+  "license": {
+    "type": "MIT",
+    "url": "http://mit-license.org/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hbi99/junior.gif"
+  },
+  "bugs": {
+    "url": "https://github.com/hbi99/junior.js/issues"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "grunt": "~0.4.2",
+    "grunt-contrib-uglify": "~0.3.2",
+    "grunt-contrib-concat": "~0.3.0",
+    "grunt-contrib-jshint": "~0.8.0"
+  }
+}
