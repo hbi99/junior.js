@@ -2,50 +2,60 @@
 (function(root, document) {
     'use strict';
 
-    var Jr = function() {
+    var Junior = function() {
         var coll = Object.create(Array.prototype);
-        for (var prop in Jr.prototype) {
-            if (Jr.prototype.hasOwnProperty(prop)) {
-                coll[prop] = Jr.prototype[prop];
+        for (var prop in Junior.prototype) {
+            if (Junior.prototype.hasOwnProperty(prop)) {
+                coll[prop] = Junior.prototype[prop];
             }
         }
-        coll.supports_querySelectorAll = !!document.querySelectorAll;
         return coll;
     };
-    Jr.prototype = {
+    Junior.prototype = {
         find: function(selector, context) {
-            var sval,
+            var found = [],
+                sval,
                 type,
                 bdown,
-                found;
+                i, il;
             context = context || document;
-            if (Array.isArray(selector)) {
+            if (selector.constructor === Array || (selector.item && selector.item.constructor === Function)) {
                 found = selector;
             } else if (selector.nodeType || selector === window) {
                 found = [selector];
-            } else if (this.supports_querySelectorAll) {
-                found = context.querySelectorAll(selector);
-            } else {
-                bdown = selector.match(/^./);
-                if (bdown !== null) bdown = bdown[0];
-                switch (bdown) {
-                    case '[':
-                        bdown = selector.match( (selector.indexOf('=') > -1) ? /\[([\w-:]+)=(.*?)\]/ : /\[([\w-:]+)\]/ );
-                        type = bdown[1];
-                        if (bdown.length > 2) sval = bdown[2].replace(/"/g, '');
-                        break;
-                    case '#': sval = selector.slice(1); type = 'id'; break;
-                    case '.': sval = selector.slice(1); type = 'className'; break;
-                    default:
-                        type = 'nodeName';
-                        sval = selector;
+            } else if (!arguments[1] && this.length > 0) {
+                for (i=0, il=this.length; i<il; i++) {
+                    found = found.concat(Array.prototype.slice.call(this.find(selector, this[i]), 0));
                 }
-                found = get_children(context, type, sval);
+            } else {
+                if (!!document.querySelectorAll) {
+                    found = context.querySelectorAll(selector);
+                } else {
+                    bdown = selector.match(/^./);
+                    if (bdown !== null) bdown = bdown[0];
+                    switch (bdown) {
+                        case '[':
+                            bdown = selector.match( (selector.indexOf('=') > -1) ? /\[([\w-:]+)=(.*?)\]/ : /\[([\w-:]+)\]/ );
+                            type = bdown[1];
+                            if (bdown.length > 2) sval = bdown[2].replace(/"/g, '');
+                            break;
+                        case '#': sval = selector.slice(1); type = 'id'; break;
+                        case '.': sval = selector.slice(1); type = 'className'; break;
+                        default:
+                            type = 'nodeName';
+                            sval = selector;
+                    }
+                    found = get_children(context, type, sval);
+                }
             }
-            for (var i=0, il=found.length; i<il; i++) {
+            if (this.length > 0) return jr(found);
+            for (i=0, il=found.length; i<il; i++) {
                 Array.prototype.push.call(this, found[i]);
             }
             return this;
+        },
+        toArray: function () {
+            return Array.prototype.slice.call(this, 0);
         },
         hasClass: function(name) {
             return this.length ? matchesSelector(this[0], '.'+ name) : false;
@@ -103,20 +113,40 @@
                 }
             }
             return arr;
+        },
+        parent: function () {
+            return this.parents();
+        },
+        parents: function (selector) {
+            var found = [],
+                match, el;
+            selector = selector || '*';
+            for (var i=0, il=this.length; i<il; i++) {
+                el = this[i].parentNode;
+                match = false;
+                while (!match && el.nodeType !== 9) {
+                    if (matchesSelector(el, selector)) {
+                        found.push(el);
+                        break;
+                    }
+                    el = el.parentNode;
+                }
+            }
+            return jr(found);
         }
     };
 
     // private stuff
-    var get_children = function(el, a, v) {
+    var get_children = function(el, attr, val) {
             if (!el) return;
-            if (a==='nodeName') v = v.toUpperCase();
+            if (attr==='nodeName') val = val.toUpperCase();
             var ar = [],
                 ac = el.getElementsByTagName('*');
             for (var c=0, cl=ac.length; c<cl; c++) {
-                if ((v && a==='nodeName' && ac[c].nodeName.indexOf(':') > -1 && ac[c].nodeName.split(':')[1].toLowerCase() === v.toLowerCase()) ||
-                    (a==='className' && ac[c].className.indexOf(v) > -1)) {
+                if ((val && attr==='nodeName' && ac[c].nodeName.indexOf(':') > -1 && ac[c].nodeName.split(':')[1].toLowerCase() === val.toLowerCase()) ||
+                    (attr === 'className' && ac[c].className.split(' ').indexOf(val) > -1)) {
                     ar.push(ac[c]);
-                } else if (v? (ac[c][a] === v || ac[c].getAttribute(a) === v) : (ac[c][a] || ac[c].getAttribute(a))) {
+                } else if (val? (ac[c][attr] === val || ac[c].getAttribute(attr) === val) : (ac[c][attr] || ac[c].getAttribute(attr))) {
                     ar.push(ac[c]);
                 }
             }
@@ -178,7 +208,7 @@
     }
     // export junior
     root.jr = function() {
-        var njr = new Jr();
+        var njr = new Junior();
         return njr.find.apply(njr, arguments);
     };
 

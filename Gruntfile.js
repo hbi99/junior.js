@@ -10,10 +10,10 @@ module.exports = function (grunt) {
 			banner    : '/* \n' +
 						' * <%= pkg.name %>.js v<%= pkg.version %> \n' +
 						' * <%= pkg.repository.url %> \n' +
-						' * <%= pkg.description %> \n' +
-						' * \n' +
-						' * <%= meta.copyright %>, <%= pkg.author.name %> <<%= pkg.author.email %>> \n' +
-						' * Licensed under the <%= pkg.license.type %> License \n' +
+					//	' * <%= pkg.description %> \n' +
+					//	' * \n' +
+					//	' * <%= meta.copyright %>, <%= pkg.author.name %> <<%= pkg.author.email %>> \n' +
+					//	' * Licensed under the <%= pkg.license.type %> License \n' +
 						' */ \n',
 			source    : ['junior.js']
 		},

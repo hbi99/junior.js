@@ -7,12 +7,14 @@
 </head>
 <body>
 
-<div class="test"></div>
+<div class="blue"></div>
+<div class="test1"><span class="red"><div class="test2"><span class="red2"></span><script type="text/javascript">var r = 1;</script></div></span></div>
+<script type="text/javascript">var b = 3;</script>
 
 <script type="text/javascript">
 
-var tmp = jr('div');
-console.log( tmp );
+var tmp = jr('.red');
+console.log( jr(tmp[0].appendChild(document.createElement('span'))) );
 
 </script>
 
