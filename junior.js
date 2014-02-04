@@ -23,7 +23,7 @@
                 found = selector;
             } else if (selector.nodeType || selector === window) {
                 found = [selector];
-            } else if (this.supports_querySelectorAll1) {
+            } else if (this.supports_querySelectorAll) {
                 found = context.querySelectorAll(selector);
             } else {
                 bdown = selector.match(/^./);
@@ -36,7 +36,9 @@
                         break;
                     case '#': sval = selector.slice(1); type = 'id'; break;
                     case '.': sval = selector.slice(1); type = 'className'; break;
-                    default: type = 'nodeName';
+                    default:
+                        type = 'nodeName';
+                        sval = selector;
                 }
                 found = get_children(context, type, sval);
             }
@@ -81,6 +83,26 @@
                 this[i].innerHTML = str;
             }
             return this;
+        },
+        attr: function (name, value, el) {
+            var arr = (el) ? [el] : this,
+                key;
+            for (var i=0, il=arr.length; i<il; i++) {
+                if (!value) {
+                    switch (typeof (name)) {
+                        case 'string':
+                            return arr[i].getAttribute(name);
+                        case 'object':
+                            for (key in name) {
+                                arr[i].setAttribute(key, name[key]);
+                            }
+                            break;
+                    }
+                } else if (name && value) {
+                    arr[i].setAttribute(name, value);
+                }
+            }
+            return arr;
         }
     };
 
