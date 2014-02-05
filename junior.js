@@ -133,11 +133,168 @@
                 }
             }
             return jr(found);
+        },
+        select: function (types, callback) {
+            this[0].focus();
+            this[0].select();
+            return this;
+        },
+        on: function (types, selector, callback) {
+            for (var i=0, il=this.length; i<il; i++) {
+                sys.eventManager.addEvent(this[i], types, callback, selector);
+            }
+            return this;
+        },
+        bind: function (types, callback) {
+            return this.on(types, false, callback);
         }
     };
 
     // private stuff
-    var get_children = function(el, attr, val) {
+    var sys = {
+            bank: {
+                guid: 0,
+                vault: {},
+                dispose: function () {},
+                flushAll: function (el) {
+                    if (!el) return;
+                    var id = el[sys.id];
+                    delete this.vault[id];
+                    delete el[sys.id];
+                },
+                empty: function (el, name, selector) {
+                    var id = el[sys.id],
+                        safe = this.vault[id],
+                        content = safe ? safe[name] : el.dataset[name];
+                    if (safe) {
+                        delete safe[name];
+                    }
+                    el.removeAttribute('data-' + name);
+                    return content;
+                },
+                balance: function (el, name) {
+                    var id = el[sys.id],
+                        safe = this.vault[id],
+                        content = safe ? safe[name] : el.dataset[name];
+                    return content || {};
+                },
+                deposit: function (el, name, value) {
+                    var id = el[sys.id] = el[sys.id] || ++this.guid,
+                        safe = this.vault[id] = this.vault[id] || {}, content, key;
+                    if (typeof (name) === 'object') {
+                        sys.extend(safe, name);
+                    } else {
+                        safe[name] = value;
+                    }
+                }
+            },
+            eventManager: {
+                init: function () {
+                    this.guid = 1;
+                },
+                dispose: function () {
+                    this.flushHandlers(document);
+                },
+                flushHandlers: function (e) {
+                    var elem = (e.nodeType) ? e : e.target;
+                    if (!elem.getElementsByTagName) return;
+                    var children = elem.getElementsByTagName('*'),
+                        sysId = sys.id,
+                        i = 0,
+                        il = children.length;
+                    for (; i < il; i++) {
+                        this.removeEvent(children[i]);
+                        sys.bank.flushAll(children[i]);
+                        delete children[i][sysId];
+                    }
+                    sys.bank.flushAll(elem[sysId]);
+                    delete elem[sysId];
+                    this.removeEvent(elem);
+                },
+                addEvent: function (elem, types, handler, selector) {
+                    var type = types.split(/\s+/),
+                        i = 0,
+                        il = type.length,
+                        obj, guid;
+                    
+                    handler._guid = handler._guid || ++this.guid;
+                    obj = {};
+                    for (; i < il; i++) {
+                        guid = ++this.guid;
+                        obj[type[i]] = {};
+                        obj[type[i]][guid] = {
+                            guid: guid,
+                            handler: handler,
+                            selector: selector
+                        };
+                    }
+                    sys.bank.deposit(elem, {
+                        events: obj
+                    });
+                    for (i=0; i<il; i++) {
+                        if (elem['on' + type[i]] && elem['on' + type[i]] !== this.handleEvent) {
+                            obj[type[i]][0] = {
+                                handler: elem['on' + type[i]]
+                            };
+                            sys.bank.deposit(elem, {
+                                events: obj
+                            });
+                        }
+                        elem['on' + type[i]] = this.handleEvent;
+                    }
+                },
+                handleEvent: function (event) {
+                    var returnValue = true,
+                        type = event.type,
+                        target = event.target,
+                        handlers = sys.bank.balance(this, 'events'),
+                        _handlers,
+                        _name,
+                        _eventHandler,
+                        _handleSelector;
+                    if (!handlers) return returnValue;
+                    _handlers = handlers[type];
+                    event.stopPropagation = function () {
+                        this.isBubblingCanceled = true;
+                    };
+                    while (target !== null && target !== this) {
+                        for (_name in _handlers) {
+                            _eventHandler = _handlers[_name];
+                            _handleSelector = _eventHandler.selector;
+                            if (_handleSelector && matchesSelector(target, _handleSelector)) {
+                                if (_eventHandler.handler.call(target, event) === false) {
+                                    returnValue = false;
+                                }
+                                if (event.isBubblingCanceled) {
+                                    return returnValue;
+                                }
+                            }
+                        }
+                        target = target.parentNode;
+                    }
+                    if (!event.isBubblingCanceled) {
+                        for (_name in _handlers) {
+                            _eventHandler = _handlers[_name];
+                            if (_eventHandler.selector) continue;
+                            if (_eventHandler.handler.call(this, event) === false) {
+                                returnValue = false;
+                            }
+                        }
+                    }
+                }
+            },
+            extend: function (safe, deposit) {
+                for (var content in deposit) {
+                    if (!safe[content] || typeof (deposit[content]) !== 'object') {
+                        safe[content] = deposit[content];
+                    } else {
+                        this.extend(safe[content], deposit[content]);
+                    }
+                }
+                return safe;
+            }
+        },
+        get_children = function(el, attr, val) {
             if (!el) return;
             if (attr==='nodeName') val = val.toUpperCase();
             var ar = [],
