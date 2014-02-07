@@ -1,4 +1,7 @@
-// Junior - simple jQuery like traversers and useful functions
+/* 
+ * junior.js v0.1.0 
+ * https://github.com/hbi99/junior 
+ */
 (function(root, document) {
     'use strict';
 
