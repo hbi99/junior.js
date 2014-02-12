@@ -10,7 +10,7 @@
             function F() {}
             F.prototype = o;
             if (typeof(props) === "object") {
-                for (prop in props) {
+                for (var prop in props) {
                     if (props.hasOwnProperty((prop))) {
                         F[prop] = props[prop];
                     }
