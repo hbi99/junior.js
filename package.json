@@ -11,6 +11,7 @@
     "type": "MIT",
     "url": "http://mit-license.org/"
   },
+  "main": "junior.min.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/hbi99/junior"
