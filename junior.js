@@ -20,6 +20,28 @@
         };
     }
 
+    if (!Function.prototype.bind) {
+        Function.prototype.bind = function (oThis) {
+            if (typeof this !== "function") {
+                // closest thing possible to the ECMAScript 5 internal IsCallable function
+                throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");
+            }
+
+            var aArgs = Array.prototype.slice.call(arguments, 1), 
+                fToBind = this, 
+                FNOP = function () {},
+                fBound = function () {
+                  return fToBind.apply(this instanceof FNOP && oThis ? this : oThis,
+                                       aArgs.concat(Array.prototype.slice.call(arguments)));
+                };
+
+            FNOP.prototype = this.prototype;
+            fBound.prototype = new FNOP();
+
+            return fBound;
+        };
+    }
+
     var Junior = function() {
         var coll = Object.create(Array.prototype);
         for (var prop in Junior.prototype) {
@@ -81,6 +103,12 @@
         addClass: function(names) {
             for (var i=0, il=this.length; i<il; i++) {
                 this[i].className = this[i].className.split(/\s+/).concat(names.split(/\s+/)).removeDuplicates().join(' ');
+            }
+            return this;
+        },
+        removeClass: function(names) {
+            for (var i=0, il=this.length; i<il; i++) {
+                this[i].className = this[i].className.split(/\s+/).difference(names.split(/\s+/)).join(' ');
             }
             return this;
         },
@@ -379,6 +407,11 @@
                 }
             }
             return unique;
+        };
+    }
+    if (!Array.prototype.hasOwnProperty('difference')) {
+        Array.prototype.difference = function(a) {
+            return this.filter(function(i) {return (a.indexOf(i) === -1);});
         };
     }
     // export junior
