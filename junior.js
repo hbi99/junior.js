@@ -1,5 +1,5 @@
 /* 
- * junior.js v0.1.0 
+ * junior.js v0.1.2 
  * https://github.com/hbi99/junior 
  */
 (function(root, document) {
@@ -133,7 +133,7 @@
         },
         html: function (str, el) {
             if (!str && str !== '') {
-                return this[0].innerHTML;
+                return this.length ? this[0].innerHTML : '';
             }
             for (var i = 0, il = this.length; i < il; i++) {
                 this[i].innerHTML = str;
