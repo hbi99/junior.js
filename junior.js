@@ -1,5 +1,5 @@
 /* 
- * junior.js v0.1.2 
+ * junior.js v0.1.3 
  * https://github.com/hbi99/junior 
  */
 (function(root, document) {
@@ -193,6 +193,15 @@
         },
         bind: function (types, callback) {
             return this.on(types, false, callback);
+        },
+        unbind: function(types, callback) {
+            return this.off(types, false, callback);
+        },
+        off: function(types, selector, callback) {
+            for (var i=0, il=this.length; i<il; i++) {
+                sys.eventManager.removeEvent(this[i], types, callback, selector);
+            }
+            return this;
         }
     };
 
@@ -287,6 +296,37 @@
                             });
                         }
                         elem['on' + type[i]] = this.handleEvent;
+                    }
+                },
+                removeEvent: function(elem, types, handler, selector) {
+                    if (arguments.length === 1) {
+                        sys.bank.flushAll(elem);
+                        return;
+                    }
+                    var type = types.split(/\s+/),
+                        i = 0,
+                        il = type.length,
+                        vault = sys.bank.vault,
+                        shelf,
+                        safe,
+                        key,
+                        content;
+
+                    if (types.indexOf('DOM') > -1 && elem.removeEventListener) {
+                        elem.removeEventListener(types, handler, false);
+                    } else if (types && handler) {
+                        shelf = vault[elem[sys.id]];
+                        for (; i<il; i++) {
+                            safe = shelf.events[type[i]];
+                            for (key in safe) {
+                                content = safe[key];
+                                if (content.handler._guid === handler._guid && content.selector === selector) {
+                                    delete safe[key];
+                                    break;
+                                }
+                            }
+                        }
+                        //delete vault[elem[sys.id]];
                     }
                 },
                 handleEvent: function (event) {
