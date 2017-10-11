@@ -28,7 +28,7 @@ Junior.prototype = {
             found = [selector];
         } else {
             if (this.length) context = this[0];
-            found = Sizzle(selector, context);
+            found = new Sizzle(selector, context);
         }
         if (this.length > 0) return jr(found);
         // populate 'this'
@@ -305,13 +305,13 @@ Junior.prototype = {
             type = types.split(/\s+/),
             i=0, il=arr.length,
             j=0, jl=type.length,
-            isNative, isStyle, event, el, listener;
+            isNative, isStyle, event, listener;
 
         for (; j<jl; j++) {
             isNative = system.eventManager.nativeEvents.indexOf(type[j]) > -1;
             isStyle = type[j].indexOf('style.') > -1;
             if (isNative) {
-                event = document.createEvent('MouseEvents'),
+                event = document.createEvent('MouseEvents');
                 event.initEvent(type[j], true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
             } else {
                 event = document.createEvent('Event');
