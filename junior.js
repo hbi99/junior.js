@@ -2,6 +2,8 @@
 (function(window, document) {
 	'use strict';
 
+	@@include('./sizzle.min.js')
+
 	// a slim jQuery like object
 	var Junior = function() {
 		var coll = Object.create(Array.prototype);
@@ -33,6 +35,7 @@
 						return jr(found);
 					}
 				}
+				console.log(selector);
 				found = Sizzle(selector, context);
 			}
 			if (this.length > 0) return jr(found);
@@ -193,7 +196,7 @@
 				if (!value) {
 					switch (typeof (name)) {
 						case 'string':
-							name = fix[name] || name;
+							name = fix[name] || name;
 							return arr[i][name];
 						case 'object':
 							for (key in name) {
@@ -202,7 +205,7 @@
 							break;
 					}
 				} else if (name && value) {
-					name = fix[name] || name;
+					name = fix[name] || name;
 					arr[i][name] = value;
 				}
 			}
@@ -216,8 +219,12 @@
 		},
 		parents: function (selector) {
 			var found = [],
-				match, el;
+				match, el,
+				isFirst = selector.slice(-6) === ':first';
+
 			selector = selector || '*';
+			selector = isFirst ? selector.slice(0,-6) : selector;
+
 			for (var i=0, il=this.length; i<il; i++) {
 				el = this[i].parentNode;
 				match = false;
@@ -229,6 +236,7 @@
 					el = el.parentNode;
 				}
 			}
+			if (isFirst) found = found[0];
 			return jr(found);
 		},
 		clone: function (deep) {
