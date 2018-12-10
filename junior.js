@@ -103,13 +103,13 @@
 		},
 		addClass: function(names) {
 			for (var i=0, il=this.length; i<il; i++) {
-				this[i].className = this[i].className.split(/\s+/).concat(names.split(/\s+/)).removeDuplicates().join(' ');
+				this[i].className = this[i].className.split(/\s+/).concat(names.split(/\s+/)).removeDuplicates().join(' ').trim();
 			}
 			return this;
 		},
 		removeClass: function(names) {
 			for (var i=0, il=this.length; i<il; i++) {
-				this[i].className = this[i].className.split(/\s+/).difference(names.split(/\s+/)).join(' ');
+				this[i].className = this[i].className.split(/\s+/).difference(names.split(/\s+/)).join(' ').trim();
 			}
 			return this;
 		},
