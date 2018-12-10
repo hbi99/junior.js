@@ -35,7 +35,6 @@
 						return jr(found);
 					}
 				}
-				console.log(selector);
 				found = Sizzle(selector, context);
 			}
 			if (this.length > 0) return jr(found);
