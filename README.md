@@ -1,4 +1,4 @@
-junior
-======
+junior.js
+=========
 
-Junior - simple jQuery like traversers and useful functions
+Simple jQuery like traversers and useful functions
