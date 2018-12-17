@@ -61,7 +61,7 @@
 			return this.map(callback);
 		},
 		toggleClass: function(name, state) {
-			return this[state ? 'addClass' : 'removeClass'](name);
+			return this[state ? 'removeClass' : 'addClass'](name);
 		},
 		is: function(qualifier) {
 			return this[0].matches(qualifier);
