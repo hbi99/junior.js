@@ -159,16 +159,16 @@
 			}
 			return this;
 		},
-		removeAttr: function (name, value, el) {
-			var arr = (el) ? [el] : this,
+		removeAttr: function (name, value) {
+			var arr = this,
 				key;
 			for (var i=0, il=arr.length; i<il; i++) {
 				arr[i].removeAttribute(name);
 			}
 			return this;
 		},
-		attr: function (name, value, el) {
-			var arr = (el) ? [el] : this,
+		attr: function (name, value) {
+			var arr = this,
 				key;
 			for (var i=0, il=arr.length; i<il; i++) {
 				if (!value) {
@@ -185,7 +185,7 @@
 					arr[i].setAttribute(name, value);
 				}
 			}
-			return arr;
+			return this;
 		},
 		prop: function(name, value, el) {
 			var fix = { 'class': 'className' },
@@ -410,6 +410,11 @@
 		}
 	};
 
+	// wait stack
+	var wait_stack = [];
+	var wait_interval = 500;
+	var wait_timeout = false;
+
 	var jr = function() {
 			var new_junior = new Junior();
 			return new_junior.find.apply(new_junior, arguments);
@@ -429,13 +434,15 @@
 				};
 
 			switch (true) {
+				case (opt.dataType === 'json'):
+					break;
 				case (opt.dataType === 'script'):
 					return auxiliary.getScript(opt.url, callback);
 				case (type === 'POST'):
 					data = JSON.stringify(opt.data);
 					break;
 				case (type === 'GET'):
-					query = '?'+ TUI.history.serialize(opt.data);
+					query = '?'+ this.history.serialize(opt.data);
 					break;
 			}
 
@@ -472,6 +479,13 @@
 			};
 			head.insertBefore(script, head.firstChild);
 		},
+		getJSON: function(url, callback) {
+			this.ajax({
+				dataType: 'json',
+				url: url,
+				success: callback
+			});
+		},
 		grep: function(list, callback) {
 			var matches = [];
 			list.toArray().map(function(el, index) {
@@ -489,9 +503,121 @@
 				}
 			}
 			return safe;
+		},
+		// wait for element or variable
+		wait_for: function(what, callback) {
+			wait_stack.push({
+				type: what.slice(0,7) === 'window.' ? 'variable' : 'selector',
+				require: what,
+				callback: callback
+			});
+			wait_flush();
+		},
+		cookie: {
+			remove: function(name) {
+				this.set(name, '', -1);
+			},
+			get: function(name) {
+				var v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+				return v ? v[2] : null;
+			},
+			set: function(name, value, days) {
+				var d = new Date;
+				d.setTime(d.getTime() + 24*60*60*1000*(days || 1));
+				document.cookie = name + "=" + value + ";path=/;expires=" + d.toGMTString();
+			}
+		},
+		history: {
+			doPush: true,
+			pop: function(state) {
+				this.doPush = false;
+				//emit event
+      			TUI.emit('Tui.Event.History.Pop', state);
+				this.doPush = true;
+			},
+			push: function(state) {
+				if (!this.doPush || JSON.stringify(state) === JSON.stringify(history.state)) return;
+				var qryString = poc.history.serialize(state),
+					url = document.location.pathname;
+				if (qryString) url += '?'+ qryString;
+				history.pushState(state, null, url);
+			},
+			serialize: function(obj) {
+				var str = [];
+				for (var p in obj) {
+					if (obj.hasOwnProperty(p)) {
+						str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+					}
+				}
+				return str.join("&");
+			},
+			unserialize: function(url) {
+				var str = url.indexOf('?') === 0 ? url.slice(1) : url,
+					params = str.split('&'),
+					i = 0, il = params.length,
+					ret = {},
+					parts,
+					val;
+
+				for (; i<il; i++) {
+					parts = params[i].split('=');
+					if (!parts[0]) continue;
+					val = decodeURIComponent(parts[1]);
+
+					switch (val) {
+						case ('true' || 'false'):
+							val = val === 'true';
+							break;
+						default:
+							if (val === (+val).toString()) val = +val;
+					}
+
+					ret[decodeURIComponent(parts[0])] = val;
+				}
+				return JSON.stringify(ret) === '{}' ? false : ret;
+		  }
 		}
 	};
 
+	// wait for mechanism
+	function wait_flush() {
+		var item,
+			search,
+			callback,
+			i = 0,
+			il = wait_stack.length,
+			parts, j, jl;
+		for (; i<il; i++) {
+			if (wait_stack[i]) {
+				switch (wait_stack[i].type) {
+					case 'selector':
+						item = document.querySelectorAll(wait_stack[i].require);
+						if (!item.length) continue;
+						break;
+					case 'variable':
+						search = window;
+						parts = wait_stack[i].require.split('.');
+						for (j=1, jl=parts.length; j<jl; j++) {
+							if (!search[parts[j]]) {
+								search = false;
+								break;
+							}
+							search = search[parts[j]];
+						}
+						item = search;
+						if (!search) continue;
+						break;
+				}
+				callback = wait_stack[i].callback;
+			}
+			wait_stack.splice(i-1, 1);
+			callback(item);
+		}
+		clearTimeout(wait_timeout);
+		if (wait_stack.length && wait_stack.length < 10) {
+			wait_timeout = setTimeout(wait_flush, wait_interval);
+		}
+	};
 
 	// private system stuff
 	var system = {
