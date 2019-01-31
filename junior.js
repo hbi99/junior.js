@@ -23,6 +23,10 @@
 
 			if (selector.constructor === Array) {
 				found = selector;
+				if (!found.length) {
+					Array.prototype.push.call(this, found);
+					return this;
+				}
 			} else if (selector.nodeType || selector === window) {
 				found = [selector];
 			} else {
