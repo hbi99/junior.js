@@ -531,9 +531,8 @@
 			doPush: true,
 			pop: function(state) {
 				this.doPush = false;
-				//emit event
-      			TUI.emit('Tui.Event.History.Pop', state);
-				this.doPush = true;
+				//emit state event
+      			this.doPush = true;
 			},
 			push: function(state) {
 				if (!this.doPush || JSON.stringify(state) === JSON.stringify(history.state)) return;
@@ -621,7 +620,7 @@
 
 	// private system stuff
 	var system = {
-		id: 'tui-'+ Date.now(),
+		id: 'jr-'+ Date.now(),
 		init: function() {
 			this.eventManager.init();
 		},
